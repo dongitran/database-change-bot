@@ -1,0 +1,16 @@
+[
+  {
+    "user": "user1",
+    "password": "password1",
+    "host": "localhost",
+    "database": "db1",
+    "port": 5432
+  },
+  {
+    "user": "user2",
+    "password": "password2",
+    "host": "localhost",
+    "database": "db2",
+    "port": 5432
+  }
+]

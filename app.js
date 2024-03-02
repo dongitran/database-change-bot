@@ -3,6 +3,8 @@ const path = require("path");
 const logger = require("morgan");
 const { Telegraf } = require("telegraf");
 const { Client } = require("pg");
+const fs = require("fs");
+
 const { getDifferences } = require("./functions/get-diff-json");
 
 require("dotenv").config();
@@ -12,6 +14,7 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 app.use(logger("dev"));
 
+console.log(process.env.BOT_TOKEN, "process.env.BOT_TOKEN");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 bot.start((ctx) => ctx.reply("Hello, I'm Database Change bot~"));
 bot.on("sticker", (ctx) => ctx.reply("👍"));
@@ -23,15 +26,12 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-const client = new Client({
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-  host: process.env.POSTGRES_HOST,
-  database: process.env.POSTGRES_DB,
-  port: process.env.POSTGRES_PORT,
-});
+const dbConfigs = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "config.json"), "utf-8")
+);
 
-async function setupDatabase() {
+async function setupDatabase(config) {
+  const client = new Client(config);
   await client.connect();
 
   const createFunctionSQL = `
@@ -84,50 +84,77 @@ async function setupDatabase() {
     `);
   }
 
-  console.log('Database setup complete with triggers for all tables.');
+  console.log("Database setup complete with triggers for all tables.");
+  return client;
 }
 
-setupDatabase().catch(console.error);
-
-client.query("LISTEN tbl_changes");
-
-client.on("notification", async (msg) => {
-  console.log("Received notification:", msg);
-  const payload = JSON.parse(msg.payload);
-  const action = payload.action;
-
-  switch (String(action).toUpperCase()) {
-    case "INSERT": {
-      const table = (payload?.table_name || "").replace(/_/g, `\\_`);
-      const message = `Insert *${table}*:\n\`\`\`json\n${JSON.stringify(
-        payload.data,
-        null,
-        2
-      )}\n\`\`\``;
-      await bot.telegram.sendMessage(process.env.TELEGRAM_GROUP_ID, message, {
-        parse_mode: "MarkdownV2",
-      });
-      break;
-    }
-    case "UPDATE": {
-      const newData = payload?.new_data || [];
-      const oldData = payload?.old_data || [];
-      const updateData = {
-        id: payload?.new_data?.id,
-        ...getDifferences(oldData, newData),
-      };
-      const table = (payload?.table_name || "").replace(/_/g, `\\_`);
-      const message = `Update *${table}*:\n\`\`\`json\n${JSON.stringify(
-        updateData,
-        null,
-        2
-      )}\n\`\`\``;
-      await bot.telegram.sendMessage(process.env.TELEGRAM_GROUP_ID, message, {
-        parse_mode: "MarkdownV2",
-      });
-      break;
-    }
+const clients = [];
+async function processDatabases() {
+  for (const config of dbConfigs) {
+    const client = await setupDatabase(config);
+    clients.push(client);
   }
-});
+
+  for (const client of clients) {
+    client.query("LISTEN tbl_changes");
+
+    client.on("notification", async (msg) => {
+      console.log("Received notification:", msg);
+      const payload = JSON.parse(msg.payload);
+      const action = payload.action;
+
+      switch (String(action).toUpperCase()) {
+        case "INSERT": {
+          const table = (payload?.table_name || "").replace(/_/g, `\\_`);
+          const message = `Insert *${table}*:\n\`\`\`json\n${JSON.stringify(
+            payload.data,
+            null,
+            2
+          )}\n\`\`\``;
+          await bot.telegram.sendMessage(
+            process.env.TELEGRAM_GROUP_ID,
+            message,
+            {
+              parse_mode: "MarkdownV2",
+            }
+          );
+          break;
+        }
+        case "UPDATE": {
+          const newData = payload?.new_data || [];
+          const oldData = payload?.old_data || [];
+          const updateData = {
+            id: payload?.new_data?.id,
+            ...getDifferences(oldData, newData),
+          };
+          const table = (payload?.table_name || "").replace(/_/g, `\\_`);
+          const message = `Update *${table}*:\n\`\`\`json\n${JSON.stringify(
+            updateData,
+            null,
+            2
+          )}\n\`\`\``;
+          await bot.telegram.sendMessage(
+            process.env.TELEGRAM_GROUP_ID,
+            message,
+            {
+              parse_mode: "MarkdownV2",
+            }
+          );
+          break;
+        }
+      }
+    });
+  }
+
+  console.log(clients.length, "49aksf");
+}
+
+//setupDatabase().catch(console.error);
+//dbConfigs.forEach(setupDatabase);
+processDatabases().catch(console.error);
+
+/*
+
+*/
 
 module.exports = app;

@@ -55,7 +55,7 @@ jobs:
         run: |
           docker buildx create --name builder --use
           docker buildx inspect builder --bootstrap
-          docker buildx build -t ideavn/DB-change-bot:latest --push .
+          docker buildx build -t ideavn/db-change-bot:latest --push .
       
       - name: Remote ssh to pull and run docker
         env:
@@ -70,10 +70,10 @@ jobs:
           script: |
             whoami
             echo "$ENV_FILE_CONTENT" > /tmp/.env
-            docker pull ideavn/DB-change-bot
-            docker stop DB-change-bot
-            docker rm DB-change-bot
-            docker run -d --name DB-change-bot --env-file /tmp/.env --restart always ideavn/DB-change-bot
+            docker pull ideavn/db-change-bot
+            docker stop db-change-bot
+            docker rm db-change-bot
+            docker run -d --name db-change-bot --env-file /tmp/.env --restart always ideavn/db-change-bot
             rm -rf /tmp/.env
             docker image prune -a -f
 

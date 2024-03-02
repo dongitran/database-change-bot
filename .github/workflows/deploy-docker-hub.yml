@@ -75,7 +75,7 @@ jobs:
             docker stop db-change-bot
             docker rm db-change-bot
             docker pull ideavn/db-change-bot
-            docker cp /tmp/config.json db-change-bot:/dist/
+            docker cp /tmp/config.json db-change-bot:/usr/src/app/dist/config.json
             docker run -d --name db-change-bot --env-file /tmp/.env --restart always ideavn/db-change-bot
             rm -rf /tmp/.env
             docker image prune -a -f

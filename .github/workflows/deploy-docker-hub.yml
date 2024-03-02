@@ -60,19 +60,22 @@ jobs:
       - name: Remote ssh to pull and run docker
         env:
           ENV_FILE_CONTENT: ${{ secrets.ENV_FILE_CONTENT }}
+          CONFIG_FILE_CONTENT: ${{ secrets.CONFIG_FILE_CONTENT }}
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER_NAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: ENV_FILE_CONTENT
+          envs: ENV_FILE_CONTENT, CONFIG_FILE_CONTENT
           script: |
             whoami
             echo "$ENV_FILE_CONTENT" > /tmp/.env
-            docker pull ideavn/db-change-bot
+            echo "$CONFIG_FILE_CONTENT" > /tmp/config.json
             docker stop db-change-bot
             docker rm db-change-bot
+            docker pull ideavn/db-change-bot
+            docker cp /tmp/config.json db-change-bot:/dist/
             docker run -d --name db-change-bot --env-file /tmp/.env --restart always ideavn/db-change-bot
             rm -rf /tmp/.env
             docker image prune -a -f

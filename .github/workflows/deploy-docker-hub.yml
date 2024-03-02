@@ -62,10 +62,10 @@ jobs:
           ENV_FILE_CONTENT: ${{ secrets.ENV_FILE_CONTENT }}
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.DIGITAL_OCEAN_SSH_HOST }}
-          username: ${{ secrets.DIGITAL_OCEAN_SSH_USER_NAME }}
-          key: ${{ secrets.DIGITAL_OCEAN_SSH_PRIVATE_KEY }}
-          port: ${{ secrets.DIGITAL_OCEAN_SSH_PORT }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER_NAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
           envs: ENV_FILE_CONTENT
           script: |
             whoami

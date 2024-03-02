@@ -1,0 +1,112 @@
+name: Deploy to Docker Hub
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  send-notification-started:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram Notification
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: "${{ secrets.TELEGRAM_GROUP_DEPLOYMENTS }}"
+        run: |
+          curl -X POST \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
+            -d chat_id=${TELEGRAM_CHAT_ID} \
+            -d text="🚀 <b>DB Change Bot</b> Deployment has started!" \
+            -d parse_mode=HTML
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies and build
+        run: |
+          npm install
+          npm run build
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user-static
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build image
+        run: |
+          docker buildx create --name builder --use
+          docker buildx inspect builder --bootstrap
+          docker buildx build -t ideavn/DB-change-bot:latest --push .
+      
+      - name: Remote ssh to pull and run docker
+        env:
+          ENV_FILE_CONTENT: ${{ secrets.ENV_FILE_CONTENT }}
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DIGITAL_OCEAN_SSH_HOST }}
+          username: ${{ secrets.DIGITAL_OCEAN_SSH_USER_NAME }}
+          key: ${{ secrets.DIGITAL_OCEAN_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DIGITAL_OCEAN_SSH_PORT }}
+          envs: ENV_FILE_CONTENT
+          script: |
+            whoami
+            echo "$ENV_FILE_CONTENT" > /tmp/.env
+            docker pull ideavn/DB-change-bot
+            docker stop DB-change-bot
+            docker rm DB-change-bot
+            docker run -d --name DB-change-bot --env-file /tmp/.env --restart always ideavn/DB-change-bot
+            rm -rf /tmp/.env
+            docker image prune -a -f
+
+  send-notification-successful:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ success() && needs.build.result == 'success' }}
+    steps:
+      - name: Send Telegram Notification
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: "${{ secrets.TELEGRAM_GROUP_DEPLOYMENTS }}"
+        run: |
+          curl -X POST \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
+            -d chat_id=${TELEGRAM_CHAT_ID} \
+            -d text="🎉 <b>DB Change Bot</b> Deployment to docker hub was successful!" \
+            -d parse_mode=HTML
+
+  send-notification-failed:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ failure() && needs.build.result == 'failure' }}
+    steps:
+      - name: Send Telegram Notification
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: "${{ secrets.TELEGRAM_GROUP_DEPLOYMENTS }}"
+        run: |
+          curl -X POST \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
+            -d chat_id=${TELEGRAM_CHAT_ID} \
+            -d text="❌ Oh no! <b>DB Change Bot</b> Deployment failed!
+            There might be something wrong with the process. 
+            Please check it out! 🛠️🔍" \
+            -d parse_mode=HTML

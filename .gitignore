@@ -1,0 +1,7 @@
+node_modules
+dist
+test
+.env
+.env.action
+dist
+auto-pull-docker-pi

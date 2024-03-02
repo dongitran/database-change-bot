@@ -16,7 +16,7 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 app.use(logger("dev"));
 
-// Bot setup
+// Bot setup and launch
 const bot = new Telegraf(process.env.BOT_TOKEN);
 bot.start((ctx) => ctx.reply("Hello, I'm Database Change bot~"));
 bot.on("sticker", (ctx) => ctx.reply("👍"));
@@ -45,9 +45,13 @@ async function processDatabases() {
     client.query("LISTEN tbl_changes");
 
     client.on("notification", async (msg) => {
-      console.log("Received notification:", msg);
       const payload = JSON.parse(msg.payload);
       const action = payload.action;
+
+      // Find the config for the database that sent the notification
+      // and send the notification to the Telegram topic
+      const databaseName = payload?.database_name;
+      const config = dbConfigs.find((c) => c.database === databaseName);
 
       switch (String(action).toUpperCase()) {
         case "INSERT": {
@@ -62,6 +66,7 @@ async function processDatabases() {
             message,
             {
               parse_mode: "MarkdownV2",
+              message_thread_id: config?.messageThreadId,
             }
           );
           break;
@@ -84,6 +89,7 @@ async function processDatabases() {
             message,
             {
               parse_mode: "MarkdownV2",
+              message_thread_id: config?.messageThreadId,
             }
           );
           break;

@@ -7,29 +7,33 @@ const fs = require("fs");
 const { getDifferences } = require("./functions/get-diff-json");
 const { setupDatabase } = require("./functions/setup-db");
 
+// Load environment variables
 require("dotenv").config();
 
+// Express setup
 const app = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 app.use(logger("dev"));
 
-console.log(process.env.BOT_TOKEN, "process.env.BOT_TOKEN");
+// Bot setup
 const bot = new Telegraf(process.env.BOT_TOKEN);
 bot.start((ctx) => ctx.reply("Hello, I'm Database Change bot~"));
 bot.on("sticker", (ctx) => ctx.reply("👍"));
 bot.launch();
 
+// Start the server
 const port = process.env.PORT || 3000;
-
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
+// Load database configurations
 const dbConfigs = JSON.parse(
   fs.readFileSync(path.join(__dirname, "config.json"), "utf-8")
 );
 
+// Database setup and notification handling
 const clients = [];
 async function processDatabases() {
   for (const config of dbConfigs) {

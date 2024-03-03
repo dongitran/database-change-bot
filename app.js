@@ -6,6 +6,9 @@ const fs = require("fs");
 
 const { getDifferences } = require("./functions/get-diff-json");
 const { setupDatabase } = require("./functions/setup-db");
+const TelegramManager = require("./functions/telegram-manager");
+const { scheduleJob } = require("node-schedule");
+const { sanitizeJson } = require("./functions/sanitize-json");
 
 // Load environment variables
 require("dotenv").config();
@@ -33,6 +36,8 @@ const dbConfigs = JSON.parse(
   fs.readFileSync(path.join(__dirname, "config.json"), "utf-8")
 );
 
+const telegramManager = new TelegramManager(bot, undefined, undefined);
+
 // Database setup and notification handling
 const clients = [];
 async function processDatabases() {
@@ -53,22 +58,16 @@ async function processDatabases() {
       const databaseName = payload?.database_name;
       const config = dbConfigs.find((c) => c.database === databaseName);
 
+      let message = "";
       switch (String(action).toUpperCase()) {
         case "INSERT": {
           const table = (payload?.table_name || "").replace(/_/g, `\\_`);
-          const message = `Insert *${table}*:\n\`\`\`json\n${JSON.stringify(
-            payload.data,
+          message = `Insert *${table}*:\n\`\`\`json\n${JSON.stringify(
+            sanitizeJson(payload.data),
             null,
             2
           )}\n\`\`\``;
-          await bot.telegram.sendMessage(
-            process.env.TELEGRAM_GROUP_ID,
-            message,
-            {
-              parse_mode: "MarkdownV2",
-              message_thread_id: config?.messageThreadId,
-            }
-          );
+
           break;
         }
         case "UPDATE": {
@@ -79,28 +78,32 @@ async function processDatabases() {
             ...getDifferences(oldData, newData),
           };
           const table = (payload?.table_name || "").replace(/_/g, `\\_`);
-          const message = `Update *${table}*:\n\`\`\`json\n${JSON.stringify(
+          message = `Update *${table}*:\n\`\`\`json\n${JSON.stringify(
             updateData,
             null,
             2
           )}\n\`\`\``;
-          await bot.telegram.sendMessage(
-            process.env.TELEGRAM_GROUP_ID,
-            message,
-            {
-              parse_mode: "MarkdownV2",
-              message_thread_id: config?.messageThreadId,
-            }
-          );
+
           break;
         }
       }
+
+      // Append message to telegram manager to send
+      telegramManager.appendMessage(
+        message,
+        process.env.TELEGRAM_GROUP_ID,
+        config?.messageThreadId
+      );
     });
   }
-
-  console.log(clients.length, "49aksf");
 }
 
+// Start the database processing
 processDatabases().catch(console.error);
+
+// Schedule the telegram bot to send a message every 1 seconds
+scheduleJob("*/1 * * * * *", async function () {
+  telegramManager.sendOneMessage(true, process.env.TELEGRAM_GROUP_ID);
+});
 
 module.exports = app;

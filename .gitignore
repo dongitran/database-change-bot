@@ -5,3 +5,4 @@ test
 .env.action
 dist
 config.json
+config.json.action

@@ -18,6 +18,7 @@
     "http-errors": "~1.6.3",
     "lorem-ipsum": "^2.0.3",
     "mersenne-twister": "^1.1.0",
+    "mongodb": "^6.4.0",
     "morgan": "~1.9.1",
     "node-schedule": "^2.1.1",
     "pg": "^8.11.3",

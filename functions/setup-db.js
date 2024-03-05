@@ -15,10 +15,12 @@ exports.setupDatabase = async (config) => {
             FOR key IN SELECT json_object_keys(data)
             LOOP
                 value := data->>key;
-                IF octet_length(value) < 248 THEN
+                IF value IS NOT NULL AND octet_length(value) < 800 THEN
                     result := jsonb_set(result, ARRAY[key], to_jsonb(value)::jsonb);
-                ELSE
+                ELSEIF value IS NOT NULL THEN
                     result := jsonb_set(result, ARRAY[key], '"large size"'::jsonb);
+                ELSE
+                    result := jsonb_set(result, ARRAY[key], 'null'::jsonb);
                 END IF;
             END LOOP;
             RETURN result::json;

@@ -59,6 +59,8 @@ class TelegramManager {
 
     // Get the first message
     const messageObj = this.messageCurrent[0];
+    // Remove the first message
+    this.messageCurrent.shift();
     try {
       const t = await this.bot.telegram.sendMessage(
         messageObj.chatId,
@@ -69,9 +71,6 @@ class TelegramManager {
           message_thread_id: messageObj.messageThreadId,
         }
       );
-
-      // Remove the first message
-      this.messageCurrent.shift();
 
       // Clear the processing
       this.processing = false;

@@ -1,16 +1,35 @@
 [
   {
-    "user": "user1",
-    "password": "password1",
-    "host": "localhost",
-    "database": "db1",
-    "port": 5432
+    "type": "mongo",
+    "telegramGroupId": "",
+    "configs": [
+      {
+        "uri": "mongodb://localhost:31181/test?directConnection=true",
+        "database": "db",
+        "messageThreadId": 2
+      }
+    ]
   },
   {
-    "user": "user2",
-    "password": "password2",
-    "host": "localhost",
-    "database": "db2",
-    "port": 5432
+    "type": "postgres",
+    "telegramGroupId": "",
+    "configs": [
+      {
+        "user": "user1",
+        "password": "password1",
+        "host": "localhost",
+        "database": "db1",
+        "port": 5432,
+        "messageThreadId": 2
+      },
+      {
+        "user": "user2",
+        "password": "password2",
+        "host": "localhost",
+        "database": "db2",
+        "port": 5432,
+        "messageThreadId": 3
+      }
+    ]
   }
 ]

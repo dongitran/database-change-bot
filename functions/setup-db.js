@@ -4,21 +4,28 @@ exports.setupDatabase = async (config) => {
   const client = new Client(config);
   await client.connect();
 
+  // Hàm lọc dữ liệu dựa trên kích thước JSON và kích thước của từng trường
   const createFilterFunctionSQL = `
-    CREATE OR REPLACE FUNCTION filter_row_data(row_data jsonb) RETURNS jsonb AS $$
+    CREATE OR REPLACE FUNCTION filter_large_data(data JSON) RETURNS JSON AS $$
     DECLARE
-        key text;
-        value text;
-        result jsonb := '{}';
+        result JSON := '{}';
+        field TEXT;
+        field_value TEXT;
     BEGIN
-        FOR key IN SELECT jsonb_object_keys(row_data)
-        LOOP
-            value := row_data->>key;
-            IF length(value) <= 128 THEN
-                result := result || jsonb_build_object(key, value);
-            END IF;
-        END LOOP;
-        RETURN result;
+        IF octet_length(data::text) > 7999 THEN
+            FOR field IN SELECT json_object_keys(data)
+            LOOP
+                field_value := data->>field;
+                IF octet_length(field_value) < 248 THEN
+                    result := jsonb_set(result, '{'||field||'}', to_jsonb(field_value));
+                ELSE
+                    result := jsonb_set(result, '{'||field||'}', '"large size"');
+                END IF;
+            END LOOP;
+            RETURN result;
+        ELSE
+            RETURN data;
+        END IF;
     END;
     $$ LANGUAGE plpgsql;
   `;
@@ -33,22 +40,22 @@ exports.setupDatabase = async (config) => {
                 'action', 'delete',
                 'table_name', TG_TABLE_NAME,
                 'database_name', current_database(),
-                'data', filter_row_data(row_to_json(OLD)::jsonb)
+                'data', filter_large_data(row_to_json(OLD))
             )::text);
         ELSIF (TG_OP = 'UPDATE') THEN
             PERFORM pg_notify('tbl_changes', json_build_object(
                 'action', 'update',
                 'table_name', TG_TABLE_NAME,
                 'database_name', current_database(),
-                'new_data', filter_row_data(row_to_json(NEW)::jsonb),
-                'old_data', filter_row_data(row_to_json(OLD)::jsonb)
+                'new_data', filter_large_data(row_to_json(NEW)),
+                'old_data', filter_large_data(row_to_json(OLD))
             )::text);
         ELSE
             PERFORM pg_notify('tbl_changes', json_build_object(
                 'action', TG_OP,
                 'table_name', TG_TABLE_NAME,
                 'database_name', current_database(),
-                'data', filter_row_data(row_to_json(NEW)::jsonb)
+                'data', filter_large_data(row_to_json(NEW))
             )::text);
         END IF;
         RETURN NEW;

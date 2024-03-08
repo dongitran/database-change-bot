@@ -64,7 +64,7 @@ class TelegramManager {
 
       if (messageObj.message.length > 4090) {
         if (messageObj?.isCountinue) {
-          messageSend = "```" + messageObj.message.substring(0, 4090) + "```";
+          messageSend = "```json" + messageObj.message.substring(0, 4090) + "```";
         } else {
           messageSend = messageObj.message.substring(0, 4090) + "```";
         }
@@ -72,7 +72,7 @@ class TelegramManager {
         messageObj.isCountinue = true;
       } else {
         if(messageObj?.isCountinue) {
-          messageSend = "```" + messageObj.message;
+          messageSend = "```json" + messageObj.message;
         }
         // Remove the first message
         this.messageCurrent.shift();

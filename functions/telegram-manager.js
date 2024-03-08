@@ -60,7 +60,7 @@ class TelegramManager {
     try {
       // Get the first message
       const messageObj = this.messageCurrent[0];
-      let messageSend = "";
+      let messageSend = messageObj.message;
 
       if (messageObj.message.length > 4096) {
         messageSend = messageObj.message.substring(0, 4096);
@@ -71,7 +71,7 @@ class TelegramManager {
       }
       const t = await this.bot.telegram.sendMessage(
         messageObj.chatId,
-        messageObj.message,
+        messageSend,
         {
           // parse_mode: "HTML",
           parse_mode: "MarkdownV2",

@@ -62,8 +62,8 @@ class TelegramManager {
       const messageObj = this.messageCurrent[0];
       let messageSend = messageObj.message;
 
-      if (messageObj.message.length > 4096) {
-        messageSend = messageObj.message.substring(0, 4096);
+      if (messageObj.message.length > 4090) {
+        messageSend = messageObj.message.substring(0, 4090) + "```";
         messageObj.message = messageObj.message.substring(4096);
       } else {
         // Remove the first message

@@ -57,11 +57,18 @@ class TelegramManager {
     // Set the processing
     this.processing = true;
 
-    // Get the first message
-    const messageObj = this.messageCurrent[0];
-    // Remove the first message
-    this.messageCurrent.shift();
     try {
+      // Get the first message
+      const messageObj = this.messageCurrent[0];
+      let messageSend = "";
+
+      if (messageObj.message.length > 4096) {
+        messageSend = messageObj.message.substring(0, 4096);
+        messageObj.message = messageObj.message.substring(4096);
+      } else {
+        // Remove the first message
+        this.messageCurrent.shift();
+      }
       const t = await this.bot.telegram.sendMessage(
         messageObj.chatId,
         messageObj.message,

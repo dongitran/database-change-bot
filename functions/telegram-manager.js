@@ -64,7 +64,7 @@ class TelegramManager {
 
       if (messageObj.message.length > 4090) {
         messageSend = messageObj.message.substring(0, 4090) + "```";
-        messageObj.message = messageObj.message.substring(4096);
+        messageObj.message = messageObj.message.substring(4090);
       } else {
         // Remove the first message
         this.messageCurrent.shift();

@@ -63,12 +63,21 @@ class TelegramManager {
       let messageSend = messageObj.message;
 
       if (messageObj.message.length > 4090) {
-        messageSend = messageObj.message.substring(0, 4090) + "```";
+        if (messageObj?.isCountinue) {
+          messageSend = "```" + messageObj.message.substring(0, 4090) + "```";
+        } else {
+          messageSend = messageObj.message.substring(0, 4090) + "```";
+        }
         messageObj.message = messageObj.message.substring(4090);
+        messageObj.isCountinue = true;
       } else {
+        if(messageObj?.isCountinue) {
+          messageSend = "```" + messageObj.message;
+        }
         // Remove the first message
         this.messageCurrent.shift();
       }
+
       const t = await this.bot.telegram.sendMessage(
         messageObj.chatId,
         messageSend,

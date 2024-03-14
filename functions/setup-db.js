@@ -11,7 +11,7 @@ exports.setupDatabase = async (config) => {
         value TEXT;
         key TEXT;
     BEGIN
-        IF octet_length(data::text) > 7999 THEN
+        IF octet_length(data::text) > 3999 THEN
             FOR key IN SELECT json_object_keys(data)
             LOOP
                 value := data->>key;

@@ -62,20 +62,17 @@ class TelegramManager {
       const messageObj = this.messageCurrent[0];
       let messageSend = messageObj.message;
 
+      // Check if message is too long to split message into multiple message
       if (messageObj.message.length > 4090) {
         if (messageObj?.isCountinue) {
           messageSend = "```json" + messageObj.message.substring(0, 4090) + "```";
         } else {
           messageSend = messageObj.message.substring(0, 4090) + "```";
         }
-        messageObj.message = messageObj.message.substring(4090);
-        messageObj.isCountinue = true;
       } else {
         if(messageObj?.isCountinue) {
           messageSend = "```json" + messageObj.message;
         }
-        // Remove the first message
-        this.messageCurrent.shift();
       }
 
       const t = await this.bot.telegram.sendMessage(
@@ -87,6 +84,16 @@ class TelegramManager {
           message_thread_id: messageObj.messageThreadId,
         }
       );
+
+      // Update message current if message is too long
+      // or remove the first message
+      if (messageObj.message.length > 4090) {
+        messageObj.message = messageObj.message.substring(4090);
+        messageObj.isCountinue = true;
+      } else {
+        // Remove the first message
+        this.messageCurrent.shift();
+      }
 
       // Clear the processing
       this.processing = false;

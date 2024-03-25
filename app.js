@@ -4,8 +4,8 @@ const logger = require("morgan");
 const { Telegraf } = require("telegraf");
 const TelegramManager = require("./functions/telegram-manager");
 const { scheduleJob } = require("node-schedule");
-const { databaseListener } = require("./functions/database-listener");
-const { kafkaListener } = require("./functions/kafka-listener");
+const { databaseListener } = require("./services/database-listener");
+const { kafkaListener } = require("./services/kafka-listener");
 
 // Load environment variables
 require("dotenv").config();

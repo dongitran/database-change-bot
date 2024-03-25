@@ -1,5 +1,5 @@
 const { Kafka } = require("kafkajs");
-const { sanitizeJson } = require("./sanitize-json");
+const { sanitizeJson } = require("../functions/sanitize-json");
 
 exports.kafkaListener = async (telegramManager) => {
   const kafka = new Kafka({

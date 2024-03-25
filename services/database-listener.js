@@ -1,9 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 const { MongoClient } = require("mongodb");
-const { getDifferences } = require("./get-diff-json");
-const { setupDatabase } = require("./setup-db");
-const { sanitizeJson } = require("./sanitize-json");
+const { getDifferences } = require("../functions/get-diff-json");
+const { setupDatabase } = require("../functions/setup-db");
+const { sanitizeJson } = require("../functions/sanitize-json");
 
 exports.databaseListener = async (telegramManager) => {
   // Initialize the clients for the databases

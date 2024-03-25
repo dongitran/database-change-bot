@@ -22,12 +22,6 @@ bot.start((ctx) => ctx.reply("Hello, I'm Database Change bot~"));
 bot.on("sticker", (ctx) => ctx.reply("👍"));
 bot.launch();
 
-// Start the server
-const port = process.env.PORT || 3004;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-
 const telegramManager = new TelegramManager(bot, undefined, undefined);
 
 // Initialize database listener to listen for database changes

@@ -8,6 +8,7 @@ RUN npm install
 
 COPY dist/ ./dist/
 COPY functions/ ./dist/functions/
+COPY services/ ./dist/services/
 
 EXPOSE 3000
 

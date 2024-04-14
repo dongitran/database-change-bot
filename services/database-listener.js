@@ -54,9 +54,9 @@ exports.databaseListener = async (telegramManager) => {
 
             let message = "";
             let dataChange;
+            const table = (payload?.table_name || "").replace(/_/g, `\\_`);
             switch (String(action).toUpperCase()) {
               case "INSERT": {
-                const table = (payload?.table_name || "").replace(/_/g, `\\_`);
                 dataChange = payload.data;
                 message = `Insert *${table}*:\n\`\`\`json\n${JSON.stringify(
                   sanitizeJson(payload.data),
@@ -73,7 +73,6 @@ exports.databaseListener = async (telegramManager) => {
                   id: payload?.new_data?.id,
                   ...getDifferences(oldData, newData),
                 };
-                const table = (payload?.table_name || "").replace(/_/g, `\\_`);
                 dataChange = updateData;
                 message = `Update *${table}*:\n\`\`\`json\n${JSON.stringify(
                   updateData,
@@ -87,7 +86,7 @@ exports.databaseListener = async (telegramManager) => {
 
             const valueSend = {
               database: databaseName,
-              table,
+              table: payload?.table_name,
               data: dataChange,
             };
             sendMessage(process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE, [

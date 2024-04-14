@@ -4,6 +4,7 @@ const { MongoClient } = require("mongodb");
 const { getDifferences } = require("../functions/get-diff-json");
 const { setupDatabase } = require("../functions/setup-db");
 const { sanitizeJson } = require("../functions/sanitize-json");
+const { Kafka } = require("kafkajs");
 
 exports.databaseListener = async (telegramManager) => {
   // Initialize the clients for the databases
@@ -13,6 +14,21 @@ exports.databaseListener = async (telegramManager) => {
   const dbConfigs = JSON.parse(
     fs.readFileSync(path.join(__dirname, "../config.json"), "utf-8")
   );
+
+  // Init Kafka producer
+  const kafka = new Kafka({
+    clientId: "botClientDt02",
+    brokers: process.env.KAFKA_PRODUCER_BROKER_DB_CHANGE.split(","),
+  });
+  const producer = kafka.producer();
+  const sendMessage = async (topic, messages) => {
+    await producer.connect();
+    await producer.send({
+      topic,
+      messages, //[{ value: "Hello KafkaJS!" }],
+    });
+    await producer.disconnect();
+  };
 
   for (const configs of dbConfigs) {
     switch (configs?.type) {
@@ -37,9 +53,11 @@ exports.databaseListener = async (telegramManager) => {
             );
 
             let message = "";
+            let dataChange;
             switch (String(action).toUpperCase()) {
               case "INSERT": {
                 const table = (payload?.table_name || "").replace(/_/g, `\\_`);
+                dataChange = payload.data;
                 message = `Insert *${table}*:\n\`\`\`json\n${JSON.stringify(
                   sanitizeJson(payload.data),
                   null,
@@ -56,6 +74,7 @@ exports.databaseListener = async (telegramManager) => {
                   ...getDifferences(oldData, newData),
                 };
                 const table = (payload?.table_name || "").replace(/_/g, `\\_`);
+                dataChange = updateData;
                 message = `Update *${table}*:\n\`\`\`json\n${JSON.stringify(
                   updateData,
                   null,
@@ -65,6 +84,15 @@ exports.databaseListener = async (telegramManager) => {
                 break;
               }
             }
+
+            const valueSend = {
+              database: databaseName,
+              table,
+              data: dataChange,
+            };
+            sendMessage(process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE, [
+              { value: JSON.stringify(valueSend) },
+            ]);
 
             // Append message to telegram manager to send
             telegramManager.appendMessage(

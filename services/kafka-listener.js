@@ -3,7 +3,7 @@ const { sanitizeJson } = require("../functions/sanitize-json");
 
 exports.kafkaListener = async (telegramManager) => {
   const kafka = new Kafka({
-    clientId: "botClientDt",
+    clientId: "botClientDt01",
     brokers: process.env.KAFKA_BROKER.split(","),
   });
   const consumer = kafka.consumer({ groupId: "botGroup" });

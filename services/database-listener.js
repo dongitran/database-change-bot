@@ -15,6 +15,11 @@ exports.databaseListener = async (telegramManager) => {
     fs.readFileSync(path.join(__dirname, "../config.json"), "utf-8")
   );
 
+  console.log(
+    process.env.KAFKA_PRODUCER_BROKER_DB_CHANGE,
+    "process.env.KAFKA_PRODUCER_BROKER_DB_CHANGE"
+  );
+  console.log(process.env.KAFKA_PRODUCER_BROKER_DB_CHANGE.split(","), "split");
   // Init Kafka producer
   const kafka = new Kafka({
     clientId: "botClientDt02",

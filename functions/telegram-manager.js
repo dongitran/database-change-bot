@@ -18,7 +18,8 @@ class TelegramManager {
         if (
           !hasSameMessage &&
           messageObj.chatId === chatId &&
-          messageObj.messageThreadId === messageThreadId &&
+          ((!messageObj.messageThreadId && !messageThreadId) ||
+            messageObj.messageThreadId === messageThreadId) &&
           (messageObj.message + message).length < 4096
         ) {
           hasSameMessage = true;
@@ -65,12 +66,13 @@ class TelegramManager {
       // Check if message is too long to split message into multiple message
       if (messageObj.message.length > 4090) {
         if (messageObj?.isCountinue) {
-          messageSend = "```json" + messageObj.message.substring(0, 4090) + "```";
+          messageSend =
+            "```json" + messageObj.message.substring(0, 4090) + "```";
         } else {
           messageSend = messageObj.message.substring(0, 4090) + "```";
         }
       } else {
-        if(messageObj?.isCountinue) {
+        if (messageObj?.isCountinue) {
           messageSend = "```json" + messageObj.message;
         }
       }
@@ -81,7 +83,9 @@ class TelegramManager {
         {
           // parse_mode: "HTML",
           parse_mode: "MarkdownV2",
-          message_thread_id: messageObj.messageThreadId,
+          ...(messageObj.messageThreadId && {
+            message_thread_id: messageObj.messageThreadId,
+          }),
         }
       );
 

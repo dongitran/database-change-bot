@@ -26,23 +26,28 @@ exports.kafkaListener = async (telegramManager) => {
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
-      const result = {
-        topic,
-        partition,
-        offset: message.offset,
-        value: JSON.parse(message.value.toString()),
-      };
-      const jsonObj = `\`\`\`json\n${JSON.stringify(
-        sanitizeJson(result),
-        null,
-        2
-      )}\n\`\`\``;
-      if (jsonObj.length < 4096) {
-        telegramManager.appendMessage(
-          jsonObj,
-          process.env.KAFKA_TELEGRAM_GROUP_ID,
-          process.env.KAFKA_TELEGRAM_TOPIC_ID
-        );
+      try {
+        const result = {
+          topic,
+          partition,
+          offset: message.offset,
+          value: JSON.parse(message.value.toString()),
+        };
+        const jsonObj = `\`\`\`json\n${JSON.stringify(
+          sanitizeJson(result),
+          null,
+          2
+        )}\n\`\`\``;
+        if (jsonObj.length < 4096) {
+          telegramManager.appendMessage(
+            jsonObj,
+            process.env.KAFKA_TELEGRAM_GROUP_ID,
+            process.env.KAFKA_TELEGRAM_TOPIC_ID
+          );
+        }
+      } catch (error) {
+        // TODO: add log to mongo
+        console.log(error, "Consumer kafka error");
       }
     },
   });

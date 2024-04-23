@@ -3,7 +3,7 @@ exports.sanitizeJson = function sanitizeJson(obj) {
     Object.keys(obj).forEach((key) => {
       const value = obj[key];
       if (typeof value === "string") {
-        if (value.length > 64) {
+        if (value.length > 128) {
           obj[key] = "";
         }
       } else if (typeof value === "object") {

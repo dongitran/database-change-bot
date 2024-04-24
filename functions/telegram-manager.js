@@ -31,7 +31,7 @@ class TelegramManager {
           messageObj.chatId === chatId &&
           ((!messageObj.messageThreadId && !messageThreadId) ||
             messageObj.messageThreadId === messageThreadId) &&
-          (messageObj.message + message).length < 4000
+          (messageObj.message + message).length < 3800
         ) {
           hasSameMessage = true;
           return {

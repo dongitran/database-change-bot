@@ -126,8 +126,6 @@ class TelegramManager {
         type: 'send-message',
         status: 'before',
         messageSend,
-        chatId,
-        messageThreadId,
         messageCurrent: this.messageCurrent,
       });
 
@@ -144,8 +142,6 @@ class TelegramManager {
         type: 'send-message',
         status: 'after',
         messageSend,
-        chatId,
-        messageThreadId,
         messageCurrent: this.messageCurrent,
       });
 

@@ -84,7 +84,6 @@ class TelegramManager {
     const release = await this.messageMutex.acquire();
     try {
       this.isSendOneMessageProcessing = true;
-      await sleep(100);
 
       // Check if processing
       if (this.processing) return;

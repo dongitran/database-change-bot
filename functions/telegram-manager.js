@@ -80,7 +80,7 @@ class TelegramManager {
         createdAt: new Date(),
         type: "send-message",
         status: "before3",
-        messageCurrent: this.messageCurrent,
+        messageCurrent: [...this.messageCurrent],
       },
     ];
 
@@ -106,7 +106,7 @@ class TelegramManager {
         type: "send-message",
         status: "before2",
         messageSend,
-        messageCurrent: this.messageCurrent,
+        messageCurrent: [...this.messageCurrent],
       });
       // Check if message is too long to split message into multiple message
       if (messageObj.message.length > 4090) {
@@ -126,7 +126,7 @@ class TelegramManager {
         type: "send-message",
         status: "before1",
         messageSend,
-        messageCurrent: this.messageCurrent,
+        messageCurrent: [...this.messageCurrent],
       });
 
       const t = await this.bot.telegram.sendMessage(
@@ -148,7 +148,7 @@ class TelegramManager {
         type: "send-message",
         status: "before",
         messageSend,
-        messageCurrent: this.messageCurrent,
+        messageCurrent: [...this.messageCurrent],
       });
 
       if (messageObj.message.length > 4090) {

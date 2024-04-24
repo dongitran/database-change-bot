@@ -129,7 +129,6 @@ class TelegramManager {
         messageCurrent: this.messageCurrent,
       });
 
-      console.log("messageSend: ", messageSend);
       const t = await this.bot.telegram.sendMessage(
         messageObj.chatId,
         messageSend,

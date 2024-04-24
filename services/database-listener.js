@@ -95,7 +95,7 @@ exports.databaseListener = async (telegramManager) => {
               data: dataChange,
             };
             try {
-              sendMessage(process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE, [
+              await sendMessage(process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE, [
                 { value: JSON.stringify(valueSend) },
               ]);
             } catch (error) {
@@ -104,11 +104,17 @@ exports.databaseListener = async (telegramManager) => {
             }
 
             // Append message to telegram manager to send
-            telegramManager.appendMessage(
-              message,
-              configs?.telegramGroupId,
-              config?.messageThreadId
-            );
+            try{
+              await telegramManager.appendMessage(
+                message,
+                configs?.telegramGroupId,
+                config?.messageThreadId
+              );
+            }
+            catch(error){
+              console.log("append telegram error: ", error);
+              console.log("message: ", message);
+            }
           });
         }
         break;

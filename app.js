@@ -6,9 +6,14 @@ const TelegramManager = require("./functions/telegram-manager");
 const { scheduleJob } = require("node-schedule");
 const { databaseListener } = require("./services/database-listener");
 const { kafkaListener } = require("./services/kafka-listener");
+const { insertMongo, initMongo } = require("./functions/logger");
 
 // Load environment variables
 require("dotenv").config();
+
+initMongo().then(() => {
+  insertMongo("log", { message: "Server started" });
+});
 
 // Express setup
 const app = express();

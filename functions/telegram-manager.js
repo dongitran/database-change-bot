@@ -1,3 +1,4 @@
+const { insertMongo } = require("./logger");
 const { sleep } = require("./sleep");
 
 require("dotenv").config();
@@ -48,6 +49,15 @@ class TelegramManager {
         message,
       });
     }
+
+    await insertMongo("telegram_manager_log", {
+      createdAt: new Date(),
+      type: 'append-message',
+      message,
+      chatId,
+      messageThreadId,
+      messageCurrent: this.messageCurrent,
+    });
 
     this.isAppendMessageProcessing = false;
   }
@@ -111,6 +121,16 @@ class TelegramManager {
 
       // Update message current if message is too long
       // or remove the first message
+      await insertMongo("telegram_manager_log", {
+        createdAt: new Date(),
+        type: 'send-message',
+        status: 'before',
+        message,
+        chatId,
+        messageThreadId,
+        messageCurrent: this.messageCurrent,
+      });
+
       if (messageObj.message.length > 4090) {
         messageObj.message = messageObj.message.substring(4090);
         messageObj.isCountinue = true;
@@ -118,6 +138,16 @@ class TelegramManager {
         // Remove the first message
         this.messageCurrent.shift();
       }
+
+      await insertMongo("telegram_manager_log", {
+        createdAt: new Date(),
+        type: 'send-message',
+        status: 'after',
+        message,
+        chatId,
+        messageThreadId,
+        messageCurrent: this.messageCurrent,
+      });
 
       // Clear the processing
       this.processing = false;

@@ -94,9 +94,14 @@ exports.databaseListener = async (telegramManager) => {
               table: payload?.table_name,
               data: dataChange,
             };
-            sendMessage(process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE, [
-              { value: JSON.stringify(valueSend) },
-            ]);
+            try {
+              sendMessage(process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE, [
+                { value: JSON.stringify(valueSend) },
+              ]);
+            } catch (error) {
+              console.log("sendKafka database listener error: ", error);
+              console.log("data: ", JSON.stringify(valueSend));
+            }
 
             // Append message to telegram manager to send
             telegramManager.appendMessage(

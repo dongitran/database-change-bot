@@ -38,6 +38,7 @@ class TelegramManager {
         message,
       });
     }
+    console.log("messageCurrent: ", this.messageCurrent);
   }
 
   async sendOneMessage(checkTime) {

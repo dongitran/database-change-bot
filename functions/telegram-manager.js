@@ -69,17 +69,20 @@ class TelegramManager {
       sleep(1000);
     }
     this.isSendOneMessageProcessing = true;
-    await insertMongo("telegram_manager_log", {
-      createdAt: new Date(),
-      type: 'send-message',
-      status: 'before3',
-      messageCurrent: this.messageCurrent,
-    });
+    sleep(100);
 
     // Check if processing
     if (this.processing) return;
     // Check if message is empty to return
     if (this.messageCurrent.length === 0) return;
+    const logContent = [
+      {
+        createdAt: new Date(),
+        type: "send-message",
+        status: "before3",
+        messageCurrent: this.messageCurrent,
+      },
+    ];
 
     // Check time to prevent send multiple request in times
     if (checkTime) {
@@ -98,10 +101,10 @@ class TelegramManager {
       const messageObj = this.messageCurrent[0];
       let messageSend = messageObj.message;
 
-      await insertMongo("telegram_manager_log", {
+      logContent.push({
         createdAt: new Date(),
-        type: 'send-message',
-        status: 'before2',
+        type: "send-message",
+        status: "before2",
         messageSend,
         messageCurrent: this.messageCurrent,
       });
@@ -118,7 +121,7 @@ class TelegramManager {
           messageSend = "```json" + messageObj.message;
         }
       }
-      await insertMongo("telegram_manager_log", {
+      logContent.push({
         createdAt: new Date(),
         type: "send-message",
         status: "before1",
@@ -141,7 +144,7 @@ class TelegramManager {
 
       // Update message current if message is too long
       // or remove the first message
-      await insertMongo("telegram_manager_log", {
+      logContent.push({
         createdAt: new Date(),
         type: "send-message",
         status: "before",
@@ -163,6 +166,7 @@ class TelegramManager {
         status: "after",
         messageSend,
         messageCurrent: this.messageCurrent,
+        array: logContent,
       });
 
       // Clear the processing

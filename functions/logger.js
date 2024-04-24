@@ -21,9 +21,8 @@ exports.insertMongo = async (collectionName, content) => {
 
     await collection.insertOne(content);
 
-    console.log("Log đã được ghi vào MongoDB.");
   } catch (error) {
-    console.error("Ghi log vào MongoDB thất bại:", error);
+    console.error("Error:", error);
   } finally {
     //await client.close();
   }

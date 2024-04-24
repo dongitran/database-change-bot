@@ -73,7 +73,6 @@ class TelegramManager {
       createdAt: new Date(),
       type: 'send-message',
       status: 'before3',
-      messageSend,
       messageCurrent: this.messageCurrent,
     });
 

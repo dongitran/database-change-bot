@@ -150,6 +150,7 @@ class TelegramManager {
         messageSend,
         messageCurrent: [...this.messageCurrent],
       });
+      
 
       if (messageObj.message.length > 4090) {
         messageObj.message = messageObj.message.substring(4090);

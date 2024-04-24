@@ -52,7 +52,7 @@ class TelegramManager {
 
     await insertMongo("telegram_manager_log", {
       createdAt: new Date(),
-      type: 'append-message',
+      type: "append-message",
       message,
       chatId,
       messageThreadId,
@@ -69,6 +69,13 @@ class TelegramManager {
       sleep(1000);
     }
     this.isSendOneMessageProcessing = true;
+    await insertMongo("telegram_manager_log", {
+      createdAt: new Date(),
+      type: 'send-message',
+      status: 'before3',
+      messageSend,
+      messageCurrent: this.messageCurrent,
+    });
 
     // Check if processing
     if (this.processing) return;
@@ -92,6 +99,13 @@ class TelegramManager {
       const messageObj = this.messageCurrent[0];
       let messageSend = messageObj.message;
 
+      await insertMongo("telegram_manager_log", {
+        createdAt: new Date(),
+        type: 'send-message',
+        status: 'before2',
+        messageSend,
+        messageCurrent: this.messageCurrent,
+      });
       // Check if message is too long to split message into multiple message
       if (messageObj.message.length > 4090) {
         if (messageObj?.isCountinue) {
@@ -105,6 +119,13 @@ class TelegramManager {
           messageSend = "```json" + messageObj.message;
         }
       }
+      await insertMongo("telegram_manager_log", {
+        createdAt: new Date(),
+        type: "send-message",
+        status: "before1",
+        messageSend,
+        messageCurrent: this.messageCurrent,
+      });
 
       console.log("messageSend: ", messageSend);
       const t = await this.bot.telegram.sendMessage(
@@ -123,8 +144,8 @@ class TelegramManager {
       // or remove the first message
       await insertMongo("telegram_manager_log", {
         createdAt: new Date(),
-        type: 'send-message',
-        status: 'before',
+        type: "send-message",
+        status: "before",
         messageSend,
         messageCurrent: this.messageCurrent,
       });
@@ -139,8 +160,8 @@ class TelegramManager {
 
       await insertMongo("telegram_manager_log", {
         createdAt: new Date(),
-        type: 'send-message',
-        status: 'after',
+        type: "send-message",
+        status: "after",
         messageSend,
         messageCurrent: this.messageCurrent,
       });

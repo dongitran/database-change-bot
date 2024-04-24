@@ -107,6 +107,11 @@ exports.databaseListener = async (telegramManager) => {
 
             // Append message to telegram manager to send
             try {
+              console.log("messageTelegram: ", {
+                message,
+                telegramGroupId: configs?.telegramGroupId,
+                messageThreadId: config?.messageThreadId,
+              });
               await telegramManager.appendMessage(
                 message,
                 configs?.telegramGroupId,

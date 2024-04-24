@@ -48,6 +48,7 @@ exports.databaseListener = async (telegramManager) => {
 
           client.on("notification", async (msg) => {
             const payload = JSON.parse(msg.payload);
+            console.log(payload, "payloadpayload");
             const action = payload.action;
 
             // Find the config for the database that sent the notification
@@ -95,23 +96,23 @@ exports.databaseListener = async (telegramManager) => {
               data: dataChange,
             };
             try {
-              await sendMessage(process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE, [
-                { value: JSON.stringify(valueSend) },
-              ]);
+              await sendMessage(
+                process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE,
+                [{ value: JSON.stringify(valueSend) }]
+              );
             } catch (error) {
               console.log("sendKafka database listener error: ", error);
               console.log("data: ", JSON.stringify(valueSend));
             }
 
             // Append message to telegram manager to send
-            try{
+            try {
               await telegramManager.appendMessage(
                 message,
                 configs?.telegramGroupId,
                 config?.messageThreadId
               );
-            }
-            catch(error){
+            } catch (error) {
               console.log("append telegram error: ", error);
               console.log("message: ", message);
             }

@@ -31,7 +31,7 @@ databaseListener(telegramManager).catch(console.error);
 kafkaListener(telegramManager).catch(console.error);
 
 // Schedule the telegram bot to send a message every 1 seconds
-scheduleJob("*/2 * * * * *", async function () {
+scheduleJob("*/1 * * * * *", async function () {
   telegramManager.sendOneMessage(true);
 });
 

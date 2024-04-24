@@ -1,3 +1,5 @@
+const { sleep } = require("./sleep");
+
 require("dotenv").config();
 
 class TelegramManager {
@@ -8,9 +10,17 @@ class TelegramManager {
     this.messageCurrent = [];
     this.timeCheckSendMessage = new Date().getTime();
     this.processing = false;
+    this.isAppendMessageProcessing = false;
+    this.isSendOneMessageProcessing = false;
   }
 
   async appendMessage(message, chatId, messageThreadId) {
+    let retry = 0;
+    while (this.isSendOneMessageProcessing && retry < 10) {
+      retry++;
+      sleep(1000);
+    }
+    this.isAppendMessageProcessing = true;
     let hasSameMessage = false;
     this.messageCurrent = this.messageCurrent
       .reverse()
@@ -38,9 +48,18 @@ class TelegramManager {
         message,
       });
     }
+
+    this.isAppendMessageProcessing = false;
   }
 
   async sendOneMessage(checkTime) {
+    let retry = 0;
+    while (this.isAppendMessageProcessing && retry < 10) {
+      retry++;
+      sleep(1000);
+    }
+    this.isSendOneMessageProcessing = true;
+
     // Check if processing
     if (this.processing) return;
     // Check if message is empty to return
@@ -109,6 +128,8 @@ class TelegramManager {
 
       console.log("send message current error: ", error);
     }
+
+    this.isSendOneMessageProcessing = false;
   }
 }
 

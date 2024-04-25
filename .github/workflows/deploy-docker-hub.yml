@@ -2,8 +2,8 @@ name: Deploy to Docker Hub
 
 on:
   push:
-    branches:
-      - main
+    #branches:
+      #- main
 
 jobs:
   send-notification-started:

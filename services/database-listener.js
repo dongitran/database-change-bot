@@ -22,12 +22,17 @@ exports.databaseListener = async (telegramManager) => {
   });
   const producer = kafka.producer();
   const sendMessage = async (topic, messages) => {
-    await producer.connect();
-    await producer.send({
-      topic,
-      messages, //[{ value: "Hello KafkaJS!" }],
-    });
-    await producer.disconnect();
+    try {
+      await producer.connect();
+      await producer.send({
+        topic,
+        messages, //[{ value: "Hello KafkaJS!" }],
+      });
+      await producer.disconnect();
+    } catch (error) {
+      console.log("sendKafka database listener error: ", error);
+      console.log("data: ", { topic, messages });
+    }
   };
 
   // TODO: add try catch and retry
@@ -90,15 +95,10 @@ exports.databaseListener = async (telegramManager) => {
               table: payload?.table_name,
               data: dataChange,
             };
-            try {
-              await sendMessage(
-                process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE,
-                [{ value: JSON.stringify(valueSend) }]
-              );
-            } catch (error) {
-              console.log("sendKafka database listener error: ", error);
-              console.log("data: ", JSON.stringify(valueSend));
-            }
+            sendMessage(
+              process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE,
+              [{ value: JSON.stringify(valueSend) }]
+            );
 
             // Append message to telegram manager to send
             try {

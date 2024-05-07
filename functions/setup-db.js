@@ -52,6 +52,7 @@ exports.setupDatabase = async (config, configTrigger = true) => {
                     'action', 'delete',
                     'table_name', TG_TABLE_NAME,
                     'database_name', current_database(),
+                    'timestamp', to_timestamp(current_timestamp)::text,
                     'data', filter_large_data(row_to_json(OLD)::json)
                 )::text);
             ELSIF (TG_OP = 'UPDATE') THEN
@@ -63,6 +64,7 @@ exports.setupDatabase = async (config, configTrigger = true) => {
                     'action', 'update',
                     'table_name', TG_TABLE_NAME,
                     'database_name', current_database(),
+                    'timestamp', to_timestamp(current_timestamp)::text,
                     'new_data', filter_large_data(changed_data::json)
                 )::text);
             ELSE
@@ -70,6 +72,7 @@ exports.setupDatabase = async (config, configTrigger = true) => {
                     'action', TG_OP,
                     'table_name', TG_TABLE_NAME,
                     'database_name', current_database(),
+                    'timestamp', to_timestamp(current_timestamp)::text,
                     'data', filter_large_data(row_to_json(NEW)::json)
                 )::text);
             END IF;

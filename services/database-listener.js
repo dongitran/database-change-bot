@@ -95,6 +95,7 @@ exports.databaseListener = async (telegramManager) => {
               database: databaseName,
               table: payload?.table_name,
               data: dataChange,
+              timestamp: payload?.timestamp,
             };
             sendMessage(process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE, [
               { value: JSON.stringify(valueSend) },

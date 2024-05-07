@@ -49,6 +49,7 @@ exports.databaseListener = async (telegramManager) => {
 
           client.on("notification", async (msg) => {
             const payload = JSON.parse(msg.payload);
+            console.log(payload, "payloadpayload");
             const action = payload.action;
 
             // Find the config for the database that sent the notification
@@ -95,10 +96,9 @@ exports.databaseListener = async (telegramManager) => {
               table: payload?.table_name,
               data: dataChange,
             };
-            sendMessage(
-              process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE,
-              [{ value: JSON.stringify(valueSend) }]
-            );
+            sendMessage(process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE, [
+              { value: JSON.stringify(valueSend) },
+            ]);
 
             // Append message to telegram manager to send
             try {

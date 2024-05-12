@@ -7,6 +7,7 @@ const { scheduleJob } = require("node-schedule");
 const { databaseListener } = require("./services/database-listener");
 const { kafkaListener } = require("./services/kafka-listener");
 const { insertMongo, initMongo } = require("./functions/logger");
+const redis = require("./functions/redis");
 
 // Load environment variables
 require("dotenv").config();
@@ -39,5 +40,10 @@ kafkaListener(telegramManager).catch(console.error);
 scheduleJob("*/1 * * * * *", async function () {
   telegramManager.sendOneMessage(true);
 });
+
+redis.connect();
+setTimeout(() => {
+  redis.pushToQueue("test", { message: "Hello, Redis!" });
+}, 3000);
 
 module.exports = app;

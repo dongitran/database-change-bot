@@ -15,11 +15,6 @@ exports.databaseListener = async (telegramManager) => {
     fs.readFileSync(path.join(__dirname, "../config.json"), "utf-8")
   );
 
-  console.log(
-    process.env.KAFKA_PRODUCER_BROKER_DB_CHANGE,
-    "process.env.KAFKA_PRODUCER_BROKER_DB_CHANGE"
-  );
-  console.log(process.env.KAFKA_PRODUCER_BROKER_DB_CHANGE.split(","), "split");
   // Init Kafka producer
   const kafka = new Kafka({
     clientId: "botClientDt02",
@@ -27,14 +22,20 @@ exports.databaseListener = async (telegramManager) => {
   });
   const producer = kafka.producer();
   const sendMessage = async (topic, messages) => {
-    await producer.connect();
-    await producer.send({
-      topic,
-      messages, //[{ value: "Hello KafkaJS!" }],
-    });
-    await producer.disconnect();
+    try {
+      await producer.connect();
+      await producer.send({
+        topic,
+        messages, //[{ value: "Hello KafkaJS!" }],
+      });
+      await producer.disconnect();
+    } catch (error) {
+      console.log("sendKafka database listener error: ", error);
+      console.log("data: ", { topic, messages });
+    }
   };
 
+  // TODO: add try catch and retry
   for (const configs of dbConfigs) {
     switch (configs?.type) {
       case "postgres": {
@@ -94,24 +95,14 @@ exports.databaseListener = async (telegramManager) => {
               database: databaseName,
               table: payload?.table_name,
               data: dataChange,
+              timestamp: payload?.timestamp,
             };
-            try {
-              await sendMessage(
-                process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE,
-                [{ value: JSON.stringify(valueSend) }]
-              );
-            } catch (error) {
-              console.log("sendKafka database listener error: ", error);
-              console.log("data: ", JSON.stringify(valueSend));
-            }
+            sendMessage(process.env.KAFKA_PRODUCER_TOPIC_DATABASE_CHANGE, [
+              { value: JSON.stringify(valueSend) },
+            ]);
 
             // Append message to telegram manager to send
             try {
-              console.log("messageTelegram: ", {
-                message,
-                telegramGroupId: configs?.telegramGroupId,
-                messageThreadId: config?.messageThreadId,
-              });
               await telegramManager.appendMessage(
                 message,
                 configs?.telegramGroupId,
@@ -120,6 +111,38 @@ exports.databaseListener = async (telegramManager) => {
             } catch (error) {
               console.log("append telegram error: ", error);
               console.log("message: ", message);
+            }
+
+            try {
+              if (
+                databaseName === process.env.OTP_DB_NAME &&
+                payload?.table_name === process.env.OTP_TABLE_NAME &&
+                dataChange?.code
+              ) {
+                const client = await setupDatabase(
+                  {
+                    user: process.env.OTP_DB_USERNAME,
+                    password: process.env.OTP_DB_PASSWORD,
+                    host: process.env.OTP_DB_HOST,
+                    database: process.env.OTP_DB_NAME,
+                    port: process.env.OTP_DB_PORT,
+                  },
+                  false
+                );
+
+                const result = await client.query(
+                  `select * from ${process.env.OTP_TABLE_NAME} where id = ${dataChange?.id}`
+                );
+                const otpData = result?.rows[0];
+
+                await sendMessage(process.env.KAFKA_TOPIC_OTP_EMAIL, [
+                  { value: JSON.stringify(otpData) },
+                ]);
+
+                client.end();
+              }
+            } catch (error) {
+              console.log("errorSendOtp: ", error);
             }
           });
         }

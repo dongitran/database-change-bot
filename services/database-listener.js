@@ -115,7 +115,7 @@ exports.databaseListener = async (telegramManager) => {
 
             try {
               if (
-                databaseName === process.env.OTP_DB_NAME &&
+                process.env.OTP_DB_NAME.split(',').includes(databaseName) &&
                 payload?.table_name === process.env.OTP_TABLE_NAME &&
                 dataChange?.code
               ) {
@@ -124,7 +124,7 @@ exports.databaseListener = async (telegramManager) => {
                     user: process.env.OTP_DB_USERNAME,
                     password: process.env.OTP_DB_PASSWORD,
                     host: process.env.OTP_DB_HOST,
-                    database: process.env.OTP_DB_NAME,
+                    database: databaseName,
                     port: process.env.OTP_DB_PORT,
                   },
                   false

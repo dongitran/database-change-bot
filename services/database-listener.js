@@ -40,7 +40,7 @@ exports.databaseListener = async (telegramManager) => {
     switch (configs?.type) {
       case "postgres": {
         for (const config of configs?.configs) {
-          const client = await setupDatabase(config);
+          const client = await setupDatabase(config, false);
           postgresClients.push(client);
         }
 
@@ -115,7 +115,7 @@ exports.databaseListener = async (telegramManager) => {
 
             try {
               if (
-                process.env.OTP_DB_NAME.split(',').includes(databaseName) &&
+                process.env.OTP_DB_NAME.split(",").includes(databaseName) &&
                 payload?.table_name === process.env.OTP_TABLE_NAME &&
                 dataChange?.code
               ) {

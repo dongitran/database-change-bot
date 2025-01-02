@@ -64,9 +64,9 @@ jobs:
           CONFIG_FILE_CONTENT: ${{ secrets.CONFIG_FILE_CONTENT }}
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER_NAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SSH_HOST_MAC }}
+          username: ${{ secrets.SSH_USER_NAME_MAC }}
+          password: ${{ secrets.SSH_PASSWORD_MAC }}
           port: ${{ secrets.SSH_PORT }}
           envs: ENV_FILE_CONTENT, CONFIG_FILE_CONTENT
           script: |

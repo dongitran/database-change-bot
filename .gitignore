@@ -7,3 +7,5 @@ dist
 config.json
 config.json.local
 config.json.action
+secret
+note

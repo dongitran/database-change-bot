@@ -80,7 +80,6 @@ jobs:
             docker cp /tmp/config.json db-change-bot:/usr/src/app/dist/config.json
             rm -rf /tmp/.env
             rm -rf /tmp/config.json
-            docker image prune -a -f
 
   send-notification-successful:
     needs: build

@@ -70,7 +70,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           envs: ENV_FILE_CONTENT, CONFIG_FILE_CONTENT
           script: |
-            whoami
+            source ~/.bashrc
             echo "$ENV_FILE_CONTENT" > /tmp/.env
             echo "$CONFIG_FILE_CONTENT" > /tmp/config.json
             docker stop db-change-bot
